@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Chatter Up</title>
+</head>
+<body>
+    <div id="chatter-up">
+        <div id="chat-container">
+            <div id="message-box">
+                <div id="message-list">
+                </div>
+                <div id="message-input">
+                    <input type="text" class="input-field" placeholder="Type a message...">
+                    <button id="send-message">Send</button>
+                </div>
+            </div>
+        </div>
+        <div id="connected-user">
+            <div id="user-list">c
+            </div>
+        </div>
+    </div>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="messageSchema.js"></script>
+    <script>
+        const socket = io.connect('http://localhost:3000');
+        const name = prompt('Enter your name');
+        const sendBtn = document.getElementById('send-message');
+        const messageInput = document.querySelector('.input-field');
+        const messageList = document.getElementById('message-list');
+        socket.emit('userjoin', name);
+        const newUser = document.createElement('div');
+        newUser.classList.add('new-user');
+        newUser.innerHTML = "Welcome "+name
+        messageList.appendChild(newUser);   
+        sendBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const message = messageInput.value;
+            console.log(message);
+            if (message) {
+                const userData = {
+                    message:message,
+                    username:name
+                }
+                socket.emit('sendmessage', userData);
+                const messageItem = document.createElement('div');
+                messageItem.classList.add('message-item');
+                messageItem.classList.add('right-side');
+                // messageItem.classList.add('current-user');
+                messageItem.innerHTML = message;
+                messageList.appendChild(messageItem);
+                messageInput.value = '';
+            }
+        });
+        socket.on('newuser', (user)=>{
+                console.log('broadcasting new user');
+                console.log(user + " has joined the chat");
+                const userItem = document.createElement('div');
+                userItem.classList.add('new-user');
+                userItem.innerHTML = user + " has joined the chat";
+                messageList.appendChild(userItem);     
+        });
+        socket.on('loadmessages', (messages)=>{
+            console.log('loading messages');
+            messages.forEach((message)=>{
+                const messageItem = document.createElement('div');
+                messageItem.classList.add('message-item');
+                messageItem.innerHTML = message.message;
+                messageList.appendChild(messageItem);
+            });
+        });
+        socket.on('message', (message) => {
+            console.log('message received');
+            const messageItem = document.createElement('div');
+            messageItem.classList.add('message-item');
+            messageItem.innerHTML = message;
+            messageList.appendChild(messageItem);
+        });
+
+    </script>
+</body>
+</html>
