@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const url = 'mongodb://0.0.0.0:27017/chatterup';
+const url = 'mongodb+srv://singhshashi126:XwnLN4iCXuvp6amm@cluster0.o0efqix.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 export const connectDB = async () => {
   try {
     const conn = await mongoose.connect(url, {
