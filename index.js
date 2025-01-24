@@ -5,7 +5,7 @@ import http from 'http'
 import cors from 'cors'
 import { connectDB } from './mongodb.config.js';
 import { MessageModel } from './messageSchema.js';
-
+import path from 'path'
 
 const app = express();
 const server = http.createServer(app);
@@ -14,6 +14,10 @@ const io = new Server(server, {
         origin: '*',
         methods:['GET', 'POST']
     }
+});
+app.use(express.static('public'));
+app.get('/', (req, res) => {
+    res.sendFile('chatter-up.html', { root: path.join(path.resolve(), 'public') });
 });
 let users= [];
 io.on('connection', (socket) => {
