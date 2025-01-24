@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatter-up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="form">
+        <div class="form-container">
+            <form class ='form-box' action="chatter-up.html" method="post">
+                <label>Name </label>
+                <input type="text" placeholder="Enter your name" required><br><br>
+                <label>Email </label>
+                <input type="email" placeholder="Enter your email" required><br><br>
+                <Label>Avatar </Label>
+                <input type="file" placeholder="upload your avatar" required accept="image/*"><br><br>
+                <button id="join">Join</button>
+            </form>
+        </div>
+    </div>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io.connect('http://localhost:3000');
+        const joinBtn = document.getElementById('join');
+        joinBtn.addEventListener('click', (e) => {
+            // e.preventDefault();
+            const name = document.querySelector('input[type="text"]').value;
+            const email = document.querySelector('input[type="email"]').value;
+            const avatar = document.querySelector('input[type="file"]').value;
+            const userData = {
+                name: name,
+                email: email,
+                avatar: avatar
+            }
+            socket.emit('join', userData);
+        });
+    </script>
+</body>
+</html>

@@ -10,6 +10,9 @@
     <div id="chatter-up">
         <div id="chat-container">
             <div id="message-box">
+                <div id="header">
+                    <div id="typing-indicator"></div>
+                </div>
                 <div id="message-list">
                 </div>
                 <div id="message-input">
@@ -19,23 +22,33 @@
             </div>
         </div>
         <div id="connected-user">
-            <div id="user-list">c
+            <div id="user-list">
+                <h2>Connected Users</h2>
+                <ul id="connected-users">
+                    
+                </ul>
             </div>
         </div>
     </div>
     <script src="http://localhost:3000/socket.io/socket.io.js"></script>
-    <script src="messageSchema.js"></script>
+
     <script>
         const socket = io.connect('http://localhost:3000');
         const name = prompt('Enter your name');
         const sendBtn = document.getElementById('send-message');
         const messageInput = document.querySelector('.input-field');
         const messageList = document.getElementById('message-list');
+        const typeIndicator = document.getElementById('typing-indicator');
+        const dots = document.getElementById('dots');
+        if (!name) {
+        alert("Name is required to join the chat!");
+      }
         socket.emit('userjoin', name);
         const newUser = document.createElement('div');
         newUser.classList.add('new-user');
         newUser.innerHTML = "Welcome "+name
         messageList.appendChild(newUser);   
+        let typingTimout;
         sendBtn.addEventListener('click', (e) => {
             e.preventDefault();
             const message = messageInput.value;
@@ -63,22 +76,79 @@
                 userItem.innerHTML = user + " has joined the chat";
                 messageList.appendChild(userItem);     
         });
+        messageInput.addEventListener('input',()=>{
+            console.log(name+' is typing')
+            socket.emit('typing', name);
+            clearTimeout(typingTimout);
+            typingTimout = setTimeout(() => {
+                socket.emit('stoptyping', name); 
+            }, 1000);
+        })
+        socket.on('broadcasttyping',(user)=>{
+
+            console.log('broadcasting typing');
+            typeIndicator.innerHTML = user + " is typing...";
+        })
+        socket.on('broadcaststoptyping',(user)=>{
+            typeIndicator.innerHTML = typeIndicator.innerHTML.replace(user + " is typing...", "");
+        })
         socket.on('loadmessages', (messages)=>{
             console.log('loading messages');
             messages.forEach((message)=>{
                 const messageItem = document.createElement('div');
+                
+                
+                if(message.username === name){
+                    messageItem.classList.add('right-side');
+                }
+                else{
+                    const username = document.createElement('div');
+                    username.innerHTML = message.username;
+                    username.classList.add('username');
+                    messageItem.appendChild(username);
+                }
                 messageItem.classList.add('message-item');
-                messageItem.innerHTML = message.message;
+                messageItem.innerHTML +=  message.message;
                 messageList.appendChild(messageItem);
             });
         });
         socket.on('message', (message) => {
             console.log('message received');
             const messageItem = document.createElement('div');
+            const username = document.createElement('div');
+            username.innerHTML = message.username;
+            username.classList.add('username');
+            messageItem.appendChild(username);
             messageItem.classList.add('message-item');
-            messageItem.innerHTML = message;
+            messageItem.innerHTML += message.message;
             messageList.appendChild(messageItem);
         });
+
+        socket.on('userleft',(username)=>{
+            console.log(username+'user left');
+            const userItem = document.createElement('div');
+            userItem.classList.add('new-user');  
+            userItem.innerHTML = username+ " has left the chat";
+            messageList.appendChild(userItem); 
+        });
+        socket.on('update-users',(users)=>{
+            console.log('updating users');
+            const parentList = document.getElementById('connected-users')
+            parentList.innerHTML = '';
+            users.forEach((user)=>{
+                console.log(user);
+                const userItem = document.createElement('li');
+                userItem.innerHTML = user;
+                document.getElementById('connected-users').appendChild(userItem);
+            });
+        });
+        function startTypingAnimation() {
+            const dotsElement = document.getElementById('dots');
+            typingDotsInterval = setInterval(() => {
+                dotCount = (dotCount + 1) % 4; // Cycle between 0, 1, 2, 3
+                dotsElement.textContent = '.'.repeat(dotCount); // Add dots
+            }, 500); // Update every 500ms
+        }
 
     </script>
 </body>
